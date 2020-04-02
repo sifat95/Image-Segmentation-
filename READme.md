@@ -1,2 +1,2 @@
-* cd IMAGE_SEGMENTATION-
+* cd Image_Segmentation-
 * python -m http.server

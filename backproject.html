@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>OpenCV</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+        <script async src="js/opencv.js"></script>
+    </head>
+
+<body>
+    <img id="input_image">
+    <input type="file" id="file_input">
+    <canvas id="output"></canvas>
+</body>
+
+<script>
+    let img_input = document.getElementById("input_image");
+    let file_input = document.getElementById("file_input");
+    let output = document.getElementById("output");
+    file_input.addEventListener('change',(e)=> {
+        img_input.src = URL.createObjectURL(e.target.files[0])
+    },false);
+
+    img_input.onload = function(){
+        let src = cv.imread(img_input);
+        let dst = cv.imread(img_input);
+        let markers = new cv.Mat();
+        let unknown = new cv.Mat();
+
+        cv.cvtColor(src, src, cv.COLOR_RGB2HSV, 0);
+        cv.cvtColor(dst, dst, cv.COLOR_RGB2HSV, 0);
+        let srcVec = new cv.MatVector();
+        let dstVec = new cv.MatVector();
+        srcVec.push_back(src); dstVec.push_back(dst);
+        let backproj = new cv.Mat();
+        let none = new cv.Mat();
+        let mask = new cv.Mat();
+        let hist = new cv.Mat();
+        let channels = [0];
+        let histSize = [50];
+        let ranges = [0, 180];
+        let accumulate = false;
+        cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
+        cv.normalize(hist, hist, 0, 255, cv.NORM_MINMAX, -1, none);
+        cv.calcBackProject(dstVec, channels, hist, backproj, ranges, 1);
+
+        cv.threshold(backproj, backproj, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+        
+        // TO-DO: Region labelling
+
+        cv.imshow(output, backproj);
+        src.delete(); dst.delete(); srcVec.delete(); dstVec.delete();
+        backproj.delete(); mask.delete(); hist.delete(); none.delete(); 
+    }
+</script>
+</html>
